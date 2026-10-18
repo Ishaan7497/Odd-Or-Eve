@@ -39,7 +39,6 @@ def batting(run_range, mode):
             runs = 0
             for i in range(balls):
                 computer_bowl = random.randint(run_range[0], run_range[-1])
-                print(f"Computer bowls: {computer_bowl}")
                 user_bat = int(input(f"\nBatting ({run_range[0]} to {run_range[-1]}): "))
                 while user_bat not in run_range:
                     print(f"Please enter a number within the range {run_range[0]} to {run_range[-1]}.")
@@ -90,7 +89,6 @@ def bowling(run_range, mode):
             runs = 0
             for i in range(balls):
                 computer_bat = random.randint(run_range[0], run_range[-1])
-                print(f"Computer bats: {computer_bat}")
                 user_bowl = int(input(f"\nBowling ({run_range[0]} to {run_range[-1]}): "))
                 while user_bowl not in run_range:
                     print(f"Please enter a number within the range {run_range[0]} to {run_range[-1]}.")
