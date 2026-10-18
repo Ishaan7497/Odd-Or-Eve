@@ -1,5 +1,26 @@
 import random
 
+
+def ask_number(prompt, valid):
+    """Keep asking until the player types a whole number that is in `valid`."""
+    while True:
+        answer = input(prompt).strip()
+        if answer.isdigit() and int(answer) in valid:
+            return int(answer)
+        print(f"Please enter a number within the range {valid[0]} to {valid[-1]}.")
+
+
+def ask_choice(prompt, options):
+    """Keep asking until the answer matches one of `options` (case-insensitive).
+
+    `options` maps each accepted answer to the value returned for it."""
+    while True:
+        answer = input(prompt).strip().upper()
+        if answer in options:
+            return options[answer]
+        print(f"Please type one of: {', '.join(options)}.")
+
+
 def select_mode():
     while True:
         mode = input("\nChoose a Mode:\n (1) 1 to 6 \n (2) 1 to 10 \n (3) *CRAZY* \n\n Enter: ")
@@ -17,10 +38,7 @@ def batting(run_range, mode):
     balls = 6
     while True:
         computer_bowl = random.randint(run_range[0], run_range[-1])
-        user_bat = int(input(f"\nBatting ({run_range[0]} to {run_range[-1]}): "))
-        while user_bat not in run_range:
-            print(f"Please enter a number within the range {run_range[0]} to {run_range[-1]}.")
-            user_bat = int(input(f"Batting ({run_range[0]} to {run_range[-1]}): "))
+        user_bat = ask_number(f"\nBatting ({run_range[0]} to {run_range[-1]}): ", run_range)
 
         if mode == "CRAZY":
             if (user_bat == computer_bowl + 1 or user_bat == computer_bowl - 1) or (user_bat == 1 and computer_bowl == 10) or (user_bat == 10 and computer_bowl == 1):
@@ -39,10 +57,7 @@ def batting(run_range, mode):
             runs = 0
             for i in range(balls):
                 computer_bowl = random.randint(run_range[0], run_range[-1])
-                user_bat = int(input(f"\nBatting ({run_range[0]} to {run_range[-1]}): "))
-                while user_bat not in run_range:
-                    print(f"Please enter a number within the range {run_range[0]} to {run_range[-1]}.")
-                    user_bat = int(input(f"Batting ({run_range[0]} to {run_range[-1]}): "))
+                user_bat = ask_number(f"\nBatting ({run_range[0]} to {run_range[-1]}): ", run_range)
                 
                 if computer_bowl == user_bat:
                     print(f"OUT! The computer bowled you out! No runs scored. The computer bowled {computer_bowl}.\nBalls remaining: {balls - i - 1}")
@@ -66,10 +81,7 @@ def bowling(run_range, mode):
     runs = 0
     while True:
         computer_bat = random.randint(run_range[0], run_range[-1])
-        user_bowl = int(input(f"Bowling ({run_range[0]} to {run_range[-1]}): "))
-        while user_bowl not in run_range:
-            print(f"Please enter a number within the range {run_range[0]} to {run_range[-1]}.")
-            user_bowl = int(input(f"Bowling ({run_range[0]} to {run_range[-1]}): "))
+        user_bowl = ask_number(f"Bowling ({run_range[0]} to {run_range[-1]}): ", run_range)
 
         if mode == "CRAZY":
             if (user_bowl == computer_bat + 1 or user_bowl == computer_bat - 1) or (user_bowl == 1 and computer_bat == 10) or (user_bowl == 10 and computer_bat == 1):
@@ -89,10 +101,7 @@ def bowling(run_range, mode):
             runs = 0
             for i in range(balls):
                 computer_bat = random.randint(run_range[0], run_range[-1])
-                user_bowl = int(input(f"\nBowling ({run_range[0]} to {run_range[-1]}): "))
-                while user_bowl not in run_range:
-                    print(f"Please enter a number within the range {run_range[0]} to {run_range[-1]}.")
-                    user_bowl = int(input(f"Bowling ({run_range[0]} to {run_range[-1]}): "))
+                user_bowl = ask_number(f"\nBowling ({run_range[0]} to {run_range[-1]}): ", run_range)
                 
                 if computer_bat == user_bowl:
                     print(f"OUT! You bowled the computer out. No runs scored. The computer batted {computer_bat}.\nBalls remaining: {balls - i - 1}")
@@ -136,15 +145,16 @@ def play():
     mode, run_range = select_mode()
     c_toss = random.randint(1, 2)
     print("\n\nTOSS ~~~ Odd or Eve ~~~  \n")
-    u_choice = input("Odd or Eve?: ").upper()
-    toss_input = int(input("Enter a number for the toss (1 or 2): "))
+    u_choice = ask_choice("Odd or Eve?: ", {"ODD": "ODD", "EVE": "EVE", "EVEN": "EVE"})
+    toss_input = ask_number("Enter a number for the toss (1 or 2): ", range(1, 3))
 
     add = c_toss + toss_input
     toss_result = "EVE" if add % 2 == 0 else "ODD"
 
     if toss_result == u_choice:
         print(f"You won the toss!\nResult: {add} ({toss_result})")
-        user_decision = input("Do you choose BAT or BOWL? (BAT / BOWL): ").upper()
+        user_decision = ask_choice("Do you choose BAT or BOWL? (BAT / BOWL): ",
+                                   {"BAT": "BAT", "BOWL": "BOWL"})
 
         if user_decision == "BAT":
             user_score = batting(run_range, mode)
@@ -181,5 +191,13 @@ def play_again():
         else:
             print("Please type in 'y' to play again or 'n' to quit.")
 
-play()
-play_again()
+def main():
+    try:
+        play()
+        play_again()
+    except (KeyboardInterrupt, EOFError):
+        print("\nExiting...")
+
+
+if __name__ == "__main__":
+    main()
