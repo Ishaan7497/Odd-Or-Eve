@@ -33,93 +33,82 @@ def select_mode():
         else:
             print("Invalid choice. Please type 1, 2, or 3.")
 
-def batting(run_range, mode):
+def is_adjacent(a, b):
+    """CRAZY mode: numbers next to each other are OUT (10 and 1 wrap around)."""
+    return abs(a - b) == 1 or {a, b} == {1, 10}
+
+
+def resolve_ball(bat, bowl, mode):
+    """Score one ball. Returns (runs, out).
+
+    Normal modes and super over: same number = OUT.
+    CRAZY: adjacent numbers = OUT, the same number scores its square."""
+    if mode == "CRAZY":
+        if is_adjacent(bat, bowl):
+            return 0, True
+        if bat == bowl:
+            return bat ** 2, False
+        return bat, False
+    if bat == bowl:
+        return 0, True
+    return bat, False
+
+
+def play_innings(run_range, mode, user_batting, target=None):
+    """Play one innings and return the runs scored.
+
+    A normal innings ends at the first wicket. A super over is 6 balls, and a
+    wicket only costs that ball's runs. When chasing a `target`, the innings
+    also ends as soon as the batting side passes it."""
     runs = 0
-    balls = 6
-    while True:
-        computer_bowl = random.randint(run_range[0], run_range[-1])
-        user_bat = ask_number(f"\nBatting ({run_range[0]} to {run_range[-1]}): ", run_range)
-
-        if mode == "CRAZY":
-            if (user_bat == computer_bowl + 1 or user_bat == computer_bowl - 1) or (user_bat == 1 and computer_bowl == 10) or (user_bat == 10 and computer_bowl == 1):
-                print(f"OUT! The computer bowled you out! The computer bowled {computer_bowl}.\nRuns to chase: {runs}\n\n")
-                break
-            elif computer_bowl == user_bat:
-                runs += user_bat ** 2
-                print("Runs Squared!")
-                print(f"You scored {user_bat ** 2}")
-                print(f"Total runs: {runs}\n")
-            else:
-                runs += user_bat
-                print(f"You scored {user_bat}\nTotal runs: {runs}\n")
-                
-        elif mode == "super_over":
-            runs = 0
-            for i in range(balls):
-                computer_bowl = random.randint(run_range[0], run_range[-1])
-                user_bat = ask_number(f"\nBatting ({run_range[0]} to {run_range[-1]}): ", run_range)
-                
-                if computer_bowl == user_bat:
-                    print(f"OUT! The computer bowled you out! No runs scored. The computer bowled {computer_bowl}.\nBalls remaining: {balls - i - 1}")
-                else:
-                    runs += user_bat
-                    print(f"You scored {user_bat}\nTotal runs: {runs}\nBalls remaining: {balls - i - 1}")
-
-            break  
-
+    balls = 6 if mode == "super_over" else None
+    ball = 0
+    while balls is None or ball < balls:
+        ball += 1
+        computer = random.randint(run_range[0], run_range[-1])
+        if user_batting:
+            user = ask_number(f"\nBatting ({run_range[0]} to {run_range[-1]}): ", run_range)
+            bat, bowl = user, computer
         else:
-            if computer_bowl == user_bat:
-                print(f"OUT! The computer bowled you out! The computer bowled {computer_bowl}.\nRuns to chase: {runs}\n\n")
-                break
+            user = ask_number(f"Bowling ({run_range[0]} to {run_range[-1]}): ", run_range)
+            bat, bowl = computer, user
+
+        scored, out = resolve_ball(bat, bowl, mode)
+        if out:
+            if user_batting:
+                print(f"OUT! The computer bowled you out! The computer bowled {computer}.")
             else:
-                runs += user_bat
-                print(f"You scored {user_bat}\nTotal runs: {runs}\n")
+                print(f"OUT! You bowled the computer out! The computer batted {computer}.")
+            if balls is None:
+                if target is None:
+                    print(f"Target to win: {runs + 1}\n\n")
+                else:
+                    print(f"Final score: {runs}\n\n")
+                break
+            print(f"No runs scored. Balls remaining: {balls - ball}\n")
+            continue
+
+        runs += scored
+        if mode == "CRAZY" and bat == bowl:
+            print("Runs Squared!")
+        print(f"{'You' if user_batting else 'Computer'} scored {scored}\nTotal runs: {runs}")
+        if balls is not None:
+            print(f"Balls remaining: {balls - ball}")
+        print()
+        if target is not None and runs > target:
+            print(f"{'You' if user_batting else 'The computer'} passed the target of {target}!\n")
+            break
 
     return runs
 
-def bowling(run_range, mode):
-    runs = 0
-    while True:
-        computer_bat = random.randint(run_range[0], run_range[-1])
-        user_bowl = ask_number(f"Bowling ({run_range[0]} to {run_range[-1]}): ", run_range)
 
-        if mode == "CRAZY":
-            if (user_bowl == computer_bat + 1 or user_bowl == computer_bat - 1) or (user_bowl == 1 and computer_bat == 10) or (user_bowl == 10 and computer_bat == 1):
-                print(f"OUT! You bowled the computer out! The computer batted {computer_bat}.\nRuns to chase: {runs}\n\n")
-                break
-            elif computer_bat == user_bowl:
-                runs += computer_bat ** 2
-                print("Runs Squared!")
-                print(f"Computer scored {computer_bat ** 2}")
-                print(f"Total runs: {runs}\n")
-            else:
-                runs += computer_bat
-                print(f"Computer scored {computer_bat}\nTotal runs: {runs}\n")
-            
-        elif mode == "super_over":
-            balls = 6
-            runs = 0
-            for i in range(balls):
-                computer_bat = random.randint(run_range[0], run_range[-1])
-                user_bowl = ask_number(f"\nBowling ({run_range[0]} to {run_range[-1]}): ", run_range)
-                
-                if computer_bat == user_bowl:
-                    print(f"OUT! You bowled the computer out. No runs scored. The computer batted {computer_bat}.\nBalls remaining: {balls - i - 1}")
-                else:
-                    runs += computer_bat
-                    print(f"Computer scored {computer_bat}\nTotal runs: {runs}\nBalls remaining: {balls - i - 1}")
+def batting(run_range, mode, target=None):
+    return play_innings(run_range, mode, user_batting=True, target=target)
 
-            break  
 
-        else:
-            if user_bowl == computer_bat:
-                print(f"OUT! You bowled the computer out! The computer batted {computer_bat}.\nRuns to chase: {runs}\n\n")
-                break
-            else:
-                runs += computer_bat
-                print(f"Computer scored {computer_bat}\nTotal runs: {runs}\n")
+def bowling(run_range, mode, target=None):
+    return play_innings(run_range, mode, user_batting=False, target=target)
 
-    return runs
 
 def decide_winner(user_score, computer_score, run_range, mode):
     if user_score > computer_score:
@@ -133,7 +122,7 @@ def decide_winner(user_score, computer_score, run_range, mode):
         mode = "super_over"
         user_score = batting(run_range, mode)
         print("\n\nYOU ARE NOW BOWLING")
-        computer_score = bowling(run_range, mode)
+        computer_score = bowling(run_range, mode, target=user_score)
         if user_score > computer_score:
             print(f"\nYou win! Your score: {user_score} | Computer's score: {computer_score}")
         elif computer_score > user_score:
@@ -159,11 +148,11 @@ def play():
         if user_decision == "BAT":
             user_score = batting(run_range, mode)
             print("\nYOU ARE NOW BOWLING")
-            computer_score = bowling(run_range, mode)
+            computer_score = bowling(run_range, mode, target=user_score)
         else:
             computer_score = bowling(run_range, mode)
             print("\nYOU ARE NOW BATTING")
-            user_score = batting(run_range, mode)
+            user_score = batting(run_range, mode, target=computer_score)
     else:
         print(f"You lost the toss! Result: {add} ({toss_result}).")
         computer_decision = random.choice(["BAT", "BOWL"])
@@ -172,11 +161,11 @@ def play():
         if computer_decision == "BAT":
             computer_score = bowling(run_range, mode)
             print("\n\nYOU ARE NOW BATTING")
-            user_score = batting(run_range, mode)
+            user_score = batting(run_range, mode, target=computer_score)
         else:
             user_score = batting(run_range, mode)
             print("\n\nYOU ARE NOW BOWLING")
-            computer_score = bowling(run_range, mode)
+            computer_score = bowling(run_range, mode, target=user_score)
 
     decide_winner(user_score, computer_score, run_range, mode)
 
