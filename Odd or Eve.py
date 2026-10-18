@@ -136,10 +136,9 @@ def decide_winner(user_score, computer_score, run_range, mode):
 
 def play():
     mode, run_range = select_mode()
-
     c_toss = random.randint(1, 2)
     print("\n\nTOSS ~~~ Odd or Eve ~~~  \n")
-    u_choice = input("Odd or Eve?: ").lower()
+    u_choice = input("Odd or Eve?: ").upper()
     toss_input = int(input("Enter a number for the toss (1 or 2): "))
 
     add = c_toss + toss_input
