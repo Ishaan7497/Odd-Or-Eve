@@ -15,6 +15,8 @@ It uses only the Python standard library. The scoring rules are kept in small, p
 
 > 🎥 **Sequel:** [Odd_or_Eve_CV](https://github.com/Ishaan7497/Odd_or_Eve_CV) plays the same game with real hand gestures through a webcam, using computer vision.
 
+## Why I built this
+
 ## How to play
 
 ```bash
